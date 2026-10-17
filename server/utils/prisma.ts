@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import fs from 'node:fs'
 import path from 'node:path'
+import { STARTER_DB_BASE64 } from './starter-db-data'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -17,14 +18,21 @@ function resolveDatabase(): string {
   const possibleStarterPaths = [
     path.resolve(process.cwd(), 'prisma', 'starter.db'),
     path.resolve(process.cwd(), 'public', 'starter.db'),
-    path.resolve(process.cwd(), 'starter.db')
+    path.resolve(process.cwd(), 'starter.db'),
+    path.resolve('/var/task', 'prisma', 'starter.db'),
+    path.resolve('/var/task', 'public', 'starter.db'),
+    path.resolve('/var/task', 'starter.db')
   ]
 
   let starterPath = ''
   for (const candidate of possibleStarterPaths) {
-    if (fs.existsSync(candidate) && fs.statSync(candidate).size > 0) {
-      starterPath = candidate
-      break
+    try {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).size > 0) {
+        starterPath = candidate
+        break
+      }
+    } catch {
+      // Ignore path check errors
     }
   }
 
@@ -39,6 +47,14 @@ function resolveDatabase(): string {
         console.log(`[Chronicle DB] Successfully hydrated /tmp/chronicle.db from ${starterPath}`)
       } catch (err) {
         console.error('[Chronicle DB] Failed to copy starter.db to /tmp/chronicle.db:', err)
+      }
+    } else if (STARTER_DB_BASE64 && STARTER_DB_BASE64.length > 0) {
+      try {
+        const buffer = Buffer.from(STARTER_DB_BASE64, 'base64')
+        fs.writeFileSync(tmpDbPath, buffer)
+        console.log(`[Chronicle DB] Successfully hydrated /tmp/chronicle.db from embedded base64 template (${buffer.length} bytes)`)
+      } catch (err) {
+        console.error('[Chronicle DB] Failed to hydrate /tmp/chronicle.db from embedded fallback:', err)
       }
     } else {
       try {

@@ -381,6 +381,11 @@ async function runAllTests() {
   assert(fs.existsSync(publicStarterPath), 'public/starter.db exists on disk')
   assert(fs.statSync(publicStarterPath).size > 0, `public/starter.db is populated (${fs.statSync(publicStarterPath).size} bytes)`)
 
+  const { STARTER_DB_BASE64 } = await import('../server/utils/starter-db-data')
+  assert(typeof STARTER_DB_BASE64 === 'string' && STARTER_DB_BASE64.length > 10000, 'Embedded base64 database template is populated')
+  const decodedBuf = Buffer.from(STARTER_DB_BASE64, 'base64')
+  assert(decodedBuf.length === 73728, `Embedded base64 database decodes to exact 73728 bytes (${decodedBuf.length} bytes)`)
+
   // Query releases inside prisma/starter.db directly
   const starterPrisma = new PrismaClient({
     datasources: {
