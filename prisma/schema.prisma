@@ -1,0 +1,68 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Release {
+  id              String         @id @default(cuid())
+  version         String         @unique // Semantic version, e.g. "v1.4.0"
+  title           String         // Editorial title, e.g. "Webhook Feeds & Search Engine"
+  slug            String         @unique // URL permalink slug, e.g. "v1-4-0"
+  summary         String         // 1-2 sentence executive summary
+  contentMarkdown String         // Full rich markdown release notes body
+  status          String         @default("DRAFT") // DRAFT | SCHEDULED | PUBLISHED
+  semverType      String         @default("MINOR") // MAJOR | MINOR | PATCH
+  publishedAt     DateTime?      // Null when DRAFT, populated on publication
+  scheduledFor    DateTime?      // Future publication timestamp if SCHEDULED
+  authorName      String         @default("Core Team")
+  authorAvatar    String?        // Avatar image URL or initials fallback
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // 1-to-many relation with cascade deletion
+  items           ReleaseItem[]
+
+  @@index([status, publishedAt])
+  @@index([slug])
+}
+
+model ReleaseItem {
+  id          String         @id @default(cuid())
+  releaseId   String
+  category    String         @default("FEATURE") // FEATURE | IMPROVEMENT | FIX | BREAKING
+  description String         // Change description or headline
+  prNumber    Int?           // Optional GitHub PR # (e.g. 142)
+  authorName  String?        // Optional contributor attribution (e.g. "@alex")
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  release     Release        @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@index([releaseId, sortOrder])
+}
+
+model Subscriber {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  confirmed   Boolean   @default(false)
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model ProjectSettings {
+  id             String   @id @default("default")
+  projectName    String   @default("Chronicle Studio")
+  projectTagline String   @default("Editorial release notes and changelog feed.")
+  projectUrl     String   @default("https://chronicle.local")
+  feedTitle      String   @default("Chronicle Changelog")
+  feedDesc       String   @default("Latest releases and platform improvements.")
+  updatedAt      DateTime @updatedAt
+}
