@@ -106,6 +106,15 @@ const {
   resetFilters
 } = useChronicle()
 
+// SSR Hydration
+const { data: initialResponse } = await useFetch<{ success: boolean; data: Release[] }>(
+  '/api/releases?status=PUBLISHED',
+  { key: 'timeline:published:releases' }
+)
+if (initialResponse.value?.data) {
+  releases.value = initialResponse.value.data
+}
+
 const showExporter = ref(false)
 const selectedExportRelease = ref<Release | null>(null)
 
@@ -114,9 +123,11 @@ const openExporter = (release: Release) => {
   showExporter.value = true
 }
 
-// Initial fetch & hash anchor scroll
+// Client hash anchor scroll
 onMounted(async () => {
-  await fetchReleases()
+  if (releases.value.length === 0) {
+    await fetchReleases()
+  }
 
   // Scroll to hash target if provided in URL (e.g. #v1.2.0)
   if (window.location.hash) {

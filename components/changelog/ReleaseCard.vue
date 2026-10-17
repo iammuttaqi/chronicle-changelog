@@ -1,7 +1,7 @@
 <template>
   <article
     :id="release.version"
-    class="group relative bg-white border border-stone-200 rounded-xl p-6 sm:p-8 shadow-paper-sm hover:shadow-paper-md transition-all duration-200 target:ring-2 target:ring-orange-500 target:ring-offset-4"
+    class="group relative bg-white border border-stone-200 rounded-xl p-6 sm:p-8 shadow-paper-sm hover:shadow-paper-md transition-all duration-200 target:ring-2 target:ring-orange-500 target:ring-offset-4 animate-card-enter"
   >
     <!-- Header: Version, SemVer badge, Dates, Exporter trigger -->
     <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
