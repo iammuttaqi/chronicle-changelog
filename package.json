@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
-    "build": "prisma generate && prisma db push --accept-data-loss && tsx prisma/seed.ts && cp prisma/dev.db prisma/starter.db && nuxt build",
+    "build": "prisma generate && prisma db push --accept-data-loss && tsx prisma/seed.ts && cp prisma/dev.db prisma/starter.db && cp prisma/dev.db public/starter.db && nuxt build",
+    "test": "tsx tests/verify-all.ts",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "prisma generate",
